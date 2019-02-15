@@ -2,22 +2,24 @@
   <div id="app">
     <section class="row">
       <div class="small-6 columns">
-        <h1 class="text-center">YOU</h1>
+        <h1 class="text-center">YOU 😃</h1>
         <div class="healthbar">
           <div class="healthbar text-center"
-               style="background-color: green; margin: 0; color: white;"
-          :style="{width : playerHealth + '%'}">
+               style="margin: 0; color: white;"
+               :style="{width : playerHealth + '%',
+                  backgroundColor: invaderHealth > 15 ? 'green' : 'red'}">
             {{playerHealth}}
           </div>
         </div>
       </div>
       <div class="small-6 columns">
-        <h1 class="text-center">MONSTER</h1>
+        <h1 class="text-center">INVADER 👽</h1>
         <div class="healthbar">
           <div class="healthbar text-center"
-               style="background-color: green; margin: 0; color: white;"
-               :style="{width : monsterHealth + '%'}">
-            {{monsterHealth}}
+               style=" margin: 0; color: white;"
+               :style="{width : invaderHealth + '%',
+                  backgroundColor: invaderHealth > 15 ? 'green' : 'red' }">
+            {{invaderHealth}}
           </div>
         </div>
       </div>
@@ -44,8 +46,13 @@
     <section class="row log" v-if="gameActionsLog.length !== 0">
       <div class="small-12 columns">
         <ul>
-          <li v-for="(action, index) in gameActionsLog" :key="index">
-            {{action}}
+          <li v-for="(action, index) in gameActionsLog"
+              :key="index"
+          :class= "{'invader-turn' : action.initiator === 'invader',
+                    'player-turn'  : action.initiator === 'player'}">
+            <div>
+              {{action.message}}
+            </div>
           </li>
         </ul>
       </div>
@@ -54,13 +61,15 @@
 </template>
 
 <script>
+import { Constants } from './constants/Constants'
+
 export default {
   name: 'MainComponent',
   data () {
     return {
       gameIsStarted: false,
       playerHealth: 100,
-      monsterHealth: 100,
+      invaderHealth: 100,
       gameActionsLog: [],
       randomConfig: {
         maxRandom: 11,
@@ -72,7 +81,7 @@ export default {
   methods: {
     startTheGame () {
       this.playerHealth = 100
-      this.monsterHealth = 100
+      this.invaderHealth = 100
       this.gameIsStarted = true
     },
     attackAction (multiplier) {
@@ -81,8 +90,9 @@ export default {
       // Player action
       this.playerAttackTurn(multiplier)
       // Monster action
-      this.monsterAttackTurn(multiplier)
-      this.checkGameStatus()
+      if (this.gameIsStarted) {
+        this.invaderAttackTurn(multiplier)
+      }
     },
     healAction () {
       // Start new turn
@@ -91,14 +101,13 @@ export default {
       let healValue = this.generateRandom(this.randomConfig.maxRandom)
       let healedPlayerHealthPoints = this.playerHealth + healValue
       this.playerHealth = healedPlayerHealthPoints > 100 ? 100 : healedPlayerHealthPoints
-      this.gameActionsLog.push('YOU healed by ' + healValue)
+      this.logAction(Constants.PLAYER, '🚑 YOU healed by ' + healValue)
       // Monster action
-      this.monsterAttackTurn(1)
-      this.checkGameStatus()
+      this.invaderAttackTurn(1)
     },
     giveUp () {
       this.playerHealth = 100
-      this.monsterHealth = 100
+      this.invaderHealth = 100
       this.gameIsStarted = false
       this.gameActionsLog = []
       this.turnCounter = 0
@@ -110,28 +119,33 @@ export default {
     },
     playerAttackTurn (damageMultiplier) {
       let damage = damageMultiplier * this.generateRandom(this.randomConfig.maxRandom)
-      this.monsterHealth -= damage
-      let logMessage = damage !== 0 ? 'YOU deal ' + damage + ' damage to MONSTER' : 'YOU missed!'
-      this.gameActionsLog.push(logMessage)
+      this.invaderHealth = damage > this.invaderHealth ? 0 : this.invaderHealth - damage
+      let logMessage = damage !== 0 ? '🎯 YOU deal ' + damage + ' damage to INVADER' : '⭕ YOU missed!'
+      this.logAction(Constants.PLAYER, logMessage)
+      this.checkResults()
     },
-    monsterAttackTurn (damageMultiplier) {
+    invaderAttackTurn (damageMultiplier) {
       let damage = damageMultiplier * this.generateRandom(this.randomConfig.maxRandom)
-      this.playerHealth -= damage
-      let logMessage = damage !== 0 ? 'MONSTER deals ' + damage + ' damage to YOU' : 'MONSTER missed!'
-      this.gameActionsLog.push(logMessage)
+      this.playerHealth = damage > this.playerHealth ? 0 : this.playerHealth - damage
+      let logMessage = damage !== 0 ? '🎯 INVADER deals ' + damage + ' damage to YOU' : '⭕ INVADER missed!'
+      this.logAction(Constants.INVADER, logMessage)
+      this.checkResults()
     },
     nextTurnLog () {
       this.turnCounter++
-      this.gameActionsLog.push('Turn: ' + this.turnCounter)
+      this.logAction(Constants.SYSTEM, 'Turn: ' + this.turnCounter)
     },
-    checkGameStatus () {
+    logAction (_initiator, _message) {
+      this.gameActionsLog.push({initiator: _initiator, message: _message})
+    },
+    checkResults () {
       if (this.playerHealth <= 0) {
         alert('Sorry bro, you loose like a goose')
-        this.giveUp()
+        this.gameIsStarted = false
       }
-      if (this.monsterHealth <= 0) {
+      if (this.invaderHealth <= 0) {
         alert('Yeah! You win!')
-        this.giveUp()
+        this.gameIsStarted = false
       }
     }
   }

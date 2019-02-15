@@ -1,7 +1,7 @@
 {
-  "name": "monsterslayerapp",
+  "name": "invaderslayerapp",
   "version": "1.0.0",
-  "description": "Slay the monster!",
+  "description": "Slay the invader!",
   "author": "v-danilov",
   "private": true,
   "scripts": {

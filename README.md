@@ -1,6 +1,6 @@
-# monsterslayerapp
+# invaderslayerapp
 
-> Slay the monster!
+> Slay the invader!
 
 ## Build Setup
 
