@@ -83,6 +83,8 @@ export default {
       this.playerHealth = 100
       this.invaderHealth = 100
       this.gameIsStarted = true
+      this.gameActionsLog = []
+      this.turnCounter = 0
     },
     attackAction (multiplier) {
       // Start new turn
@@ -106,11 +108,7 @@ export default {
       this.invaderAttackTurn(1)
     },
     giveUp () {
-      this.playerHealth = 100
-      this.invaderHealth = 100
       this.gameIsStarted = false
-      this.gameActionsLog = []
-      this.turnCounter = 0
     },
 
     // Utils
@@ -136,7 +134,7 @@ export default {
       this.logAction(Constants.SYSTEM, 'Turn: ' + this.turnCounter)
     },
     logAction (_initiator, _message) {
-      this.gameActionsLog.push({initiator: _initiator, message: _message})
+      this.gameActionsLog.unshift({initiator: _initiator, message: _message})
     },
     checkResults () {
       if (this.playerHealth <= 0) {
@@ -152,7 +150,7 @@ export default {
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
+<!-- Add "scoped" attribute to limit CSS to this compnent only -->
 <style scoped>
 
 </style>
